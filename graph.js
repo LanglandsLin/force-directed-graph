@@ -5,7 +5,7 @@
     var forceCircleStroke = "#ffffff";
     var forceCircleStrokeWidth = 0.5;
     var forceOpacity = 0.8;
-    var unselecetedColor = "#0000ff";
+    var unselecetedColor = "#ffffff";
 
     var force_height = window.innerHeight;
     var force_width = window.innerWidth;
@@ -15,18 +15,24 @@
                 .attr("height",force_height)
                 .attr("width",force_width);
     Data = data;
-    node_len = 100;
-    for(var i=0;i<node_len;i++){
-      for (var j=0; j<node_len;j++){
-          if (Math.random()<0.6){
-            Data[i][j] = 0;
-            Data[j][i] = 0;
-          }
-          //Data[i][j] = 1;
-      }
-        //console.log(svg_edges);
-    }
-    //console.log(data);
+    node_len = 198;
+    // for(var i=0;i<node_len;i++){
+    //   for (var j=0; j<node_len;j++){
+    //       if (Math.random()<1){
+    //         Data[i][j] = 0;
+    //         Data[j][i] = 0;
+    //       }
+    //       //Data[i][j] = 1;
+    //   }
+    //     //console.log(svg_edges);
+    // }
+
+    // for (var j=0; j<node_len;j++){
+    //   Data[0][j] = 1;
+    //   Data[j][0] = 1;
+    // }
+
+    //console.log(Data);
 // function drawforce(nodes,edges,svg){
 //     var nodesid=[];
 //     for(var i=0;i<nodes.length;i++){
@@ -90,14 +96,14 @@ function distance(a, b){
 }
 
 function energe(d, m){
-  var k = 0.25 * Math.sqrt(force_width * force_height / node_len);
+  var k = 0.75 * Math.sqrt(force_width * force_height / node_len);
   eps = 1e-5;
 
   var repell = Math.sign(delta(d, {id:-1,x:force_width/2,y:force_height/2}, m)) * 1 / Math.abs((delta(d, {id:-1,x:force_width/2,y:force_height/2}, m) + eps));
   for (var i = 0; i < node_len; i++){
     if (d.id != i){
-      if (delta(d, nodes[i], m) != 0) {
-        repell += Math.sign(delta(d, nodes[i], m)) * 1 / Math.abs((delta(d, nodes[i], m) + eps))
+      if (Math.abs(delta(d, nodes[i], m)) > 1) {
+        repell += Math.sign(delta(d, nodes[i], m)) * 1 / Math.abs(distance(d, nodes[i]) + eps)
       } else {
         repell += (Math.random() - 0.5) / 0.5 * 10;
       }
@@ -106,7 +112,7 @@ function energe(d, m){
   var appeal = 0;
   for (var i = 0; i < node_len; i++){
     if (Data[d.id][i] == 1){
-      appeal -= Math.sign(delta(d, nodes[i], m)) * Math.pow(delta(d, nodes[i], m), 2)
+      appeal -= Math.sign(delta(d, nodes[i], m)) * Math.pow(distance(d, nodes[i]), 2)
     }
   }
   return k * k * repell + appeal / k
@@ -175,15 +181,15 @@ function iterate(epoch){
 }
 
 var node = svg.append("g")
-                .attr("stroke", "#fff")
-                .attr("stroke-width", 1.5)
+                // .attr("stroke", "#999")
+                // .attr("stroke-width", 1)
                 .selectAll("circle")
                 .data(nodes)
                 .join("circle")
                 .attr("r", 5)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
-                .attr("fill", unselecetedColor)
+                .attr("fill", "#fff")
 
 var link = svg.append("g")
                 .attr("stroke", "#999")
@@ -191,6 +197,7 @@ var link = svg.append("g")
                 .selectAll("line")
                 .data(links)
                 .join("line")
+                .attr("opacity", 0.3)
                 .attr("x1", d => d.source.x)
                 .attr("y1", d => d.source.y)
                 .attr("x2", d => d.target.x)
