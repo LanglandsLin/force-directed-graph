@@ -95,7 +95,7 @@ function distance(a, b){
   return Math.sqrt(Math.pow((a.x - b.x), 2) + Math.pow((a.y - b.y), 2))
 }
 
-function energe(d, m){
+function force(d, m){
   var k = 0.75 * Math.sqrt(force_width * force_height / node_len);
   eps = 1e-5;
 
@@ -116,14 +116,17 @@ function energe(d, m){
       appeal -= Math.sign(delta(d, nodes[i], m)) * Math.pow(distance(d, nodes[i]), 2)
     }
   }
-  return 0 * k * k * repell + appeal / k
+  return k * k * repell + appeal / k
 }
 
-function min_energe(d, lr){
-  dx = energe(d, 'x');
-  dy = energe(d, 'y');
-  // grad_x = (energe({id:d.id,x:d.x + dx,y:d.y}, 'x') - energe(d, 'x')) / dx;
-  // grad_y = (energe({id:d.id,x:d.x,y:d.y + dy}, 'y') - energe(d, 'y')) / dy;
+function min_force(d, lr){
+  dx = force(d, 'x');
+  dy = force(d, 'y');
+
+  // console.log(dx);
+  // console.log(dy);
+  // grad_x = (force({id:d.id,x:d.x + dx,y:d.y}, 'x') - force(d, 'x')) / dx;
+  // grad_y = (force({id:d.id,x:d.x,y:d.y + dy}, 'y') - force(d, 'y')) / dy;
 
   d.x = d.x + Math.sign(dx) * Math.min(Math.abs(dx), lr);
   d.y = d.y + Math.sign(dy) * Math.min(Math.abs(dy), lr);
@@ -132,16 +135,16 @@ function min_energe(d, lr){
 }
 
 function iterate(epoch){
-  var lr = 50;
+  var lr = 30;
   for (var j = 0; j < epoch; j++){
     //lr = lr / (j + 1);
-     if (j > 100) lr = 10;
-     if (j > 300) lr = 1;
-     if (j > 700) lr = 0.1;
+     // if (j > 100) lr = 10;
+     // if (j > 300) lr = 1;
+     //if (j > 700) lr = 50;
     var gx = 0;
     var gy = 0;
     for (var i = 0; i < node_len; i++){
-      min_energe(nodes[i], lr);
+      min_force(nodes[i], lr);
       gx += nodes[i].x;
       gy += nodes[i].y;
       // node = node
@@ -165,20 +168,22 @@ function iterate(epoch){
       nodes[i].x = nodes[i].x + force_width / 2 - gx;
       nodes[i].y = nodes[i].y + force_height / 2 - gy;
     }
-    // node = node
-    //                 //.data(nodes)
-    //                 .transition().duration(600)
-    //                 .attr("cx", d => d.x)
-    //                 .attr("cy", d => d.y)
-    //                 .attr("fill", unselecetedColor)
+    // if (j == 100){
+    //   node = node
+    //                   //.data(nodes)
+    //                   .transition().duration(600)
+    //                   .attr("cx", d => d.x)
+    //                   .attr("cy", d => d.y)
+    //                   .attr("fill", unselecetedColor)
     //
-    // link = link
-    //                 //.data(links)
-    //                 .transition().duration(600)
-    //                 .attr("x1", d => d.source.x)
-    //                 .attr("y1", d => d.source.y)
-    //                 .attr("x2", d => d.target.x)
-    //                 .attr("y2", d => d.target.y)
+    //   link = link
+    //                   //.data(links)
+    //                   .transition().duration(600)
+    //                   .attr("x1", d => d.source.x)
+    //                   .attr("y1", d => d.source.y)
+    //                   .attr("x2", d => d.target.x)
+    //                   .attr("y2", d => d.target.y)
+    // }
   }
 }
 
