@@ -99,10 +99,11 @@ function energe(d, m){
   var k = 0.75 * Math.sqrt(force_width * force_height / node_len);
   eps = 1e-5;
 
-  var repell = Math.sign(delta(d, {id:-1,x:force_width/2,y:force_height/2}, m)) * 1 / Math.abs((delta(d, {id:-1,x:force_width/2,y:force_height/2}, m) + eps));
+  var repell = Math.sign(delta(d, {id:-1,x:force_width/2,y:force_height/2}, m)) * 1 / Math.abs((distance(d, {id:-1,x:force_width/2,y:force_height/2}) + eps));
+  //var repell = 0;
   for (var i = 0; i < node_len; i++){
     if (d.id != i){
-      if (Math.abs(delta(d, nodes[i], m)) > 1) {
+      if (Math.abs(delta(d, nodes[i], m)) != 0) {
         repell += Math.sign(delta(d, nodes[i], m)) * 1 / Math.abs(distance(d, nodes[i]) + eps)
       } else {
         repell += (Math.random() - 0.5) / 0.5 * 10;
@@ -115,7 +116,7 @@ function energe(d, m){
       appeal -= Math.sign(delta(d, nodes[i], m)) * Math.pow(distance(d, nodes[i]), 2)
     }
   }
-  return k * k * repell + appeal / k
+  return 0 * k * k * repell + appeal / k
 }
 
 function min_energe(d, lr){
@@ -136,6 +137,7 @@ function iterate(epoch){
     //lr = lr / (j + 1);
      if (j > 100) lr = 10;
      if (j > 300) lr = 1;
+     if (j > 700) lr = 0.1;
     var gx = 0;
     var gy = 0;
     for (var i = 0; i < node_len; i++){
