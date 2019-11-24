@@ -1,4 +1,43 @@
  d3.csv("jazz.csv").then(function(data) {
+   var eta = 1;
+   var sliderSimple = d3
+                         .sliderBottom()
+                         .min(0)
+                         .max(1)
+                         .width(300)
+                         .ticks(5)
+                         .default(1)
+                         .on('onchange', val => {
+                           eta = val;
+                           iterate(10);
+                           //
+                           d3.selectAll("circle")
+                             //.data(nodes)
+                             .transition().duration(100)
+                             .attr("cx", d => d.x)
+                             .attr("cy", d => d.y)
+
+                           d3.selectAll(".forceline")
+                                           //.data(links)
+                             .transition().duration(100)
+                             .attr("x1", d => nodes[d.source].x)
+                             .attr("y1", d => nodes[d.source].y)
+                             .attr("x2", d => nodes[d.target].x)
+                             .attr("y2", d => nodes[d.target].y)
+                             });
+
+   var gSimple = d3
+                         .select('div#slider-simple')
+                         .append('svg')
+                         .attr('width', window.innerWidth)
+                         .attr('height', 100)
+                         .append('g')
+                         .attr('transform', 'translate(30,30)');
+
+   gSimple.call(sliderSimple);
+
+
+
     var forcelineWidth = 1;
     var forceLineColor = "#c6c6c6";
     var forceCircleR = 4;
@@ -14,11 +53,12 @@
                 .attr("float","none")
                 .attr("height",force_height)
                 .attr("width",force_width);
+
     Data = data;
     node_len = 198;
     // for(var i=0;i<node_len;i++){
     //   for (var j=0; j<node_len;j++){
-    //       if (Math.random()<1){
+    //       if (Math.random()<0.5){
     //         Data[i][j] = 0;
     //         Data[j][i] = 0;
     //       }
@@ -60,26 +100,17 @@ for (var i = 0 ; i < node_len; i++){
 }
 console.log(nodes);
 // console.log(links);
-var forceData = []
+var links = []
 for(var i=0;i<node_len;i++){
   for (var j=0; j<node_len;j++){
     if (Data[i][j] == 1){
-      forceData.push({
+      links.push({
           source:parseInt(i),
           target:parseInt(j)
       })
     }
   }
     //console.log(svg_edges);
-}
-console.log(forceData);
-
-var links = [];
-for(var i = 0 ;i < forceData.length ; i++){
-    links.push({
-    source:nodes[parseInt(forceData[i].source)],
-    target:nodes[parseInt(forceData[i].target)]
-    })
 }
 
 
@@ -96,7 +127,7 @@ function distance(a, b){
 }
 
 function force(d, m){
-  var k = 0.75 * Math.sqrt(force_width * force_height / node_len);
+  var k = 0.75 * Math.sqrt(force_width * force_height / node_len) * eta;
   eps = 1e-5;
 
   var repell = Math.sign(delta(d, {id:-1,x:force_width/2,y:force_height/2}, m)) * 1 / Math.abs((distance(d, {id:-1,x:force_width/2,y:force_height/2}) + eps));
@@ -116,7 +147,7 @@ function force(d, m){
       appeal -= Math.sign(delta(d, nodes[i], m)) * Math.pow(distance(d, nodes[i]), 2)
     }
   }
-  return k * k * repell + appeal / k
+  return k * k * repell + appeal / (k + eps)
 }
 
 function min_force(d, lr){
@@ -188,15 +219,16 @@ function iterate(epoch){
 }
 
 var node = svg.append("g")
-                // .attr("stroke", "#999")
-                // .attr("stroke-width", 1)
+                // .attr("stroke", "black")
+                // .attr("stroke-width", 0.5)
                 .selectAll("circle")
                 .data(nodes)
                 .join("circle")
-                .attr("r", 5)
+                .attr("r", 3)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
-                .attr("fill", "#fff")
+                .attr("fill", "black")
+                .call(d3.drag().on("start", started))
 
 var link = svg.append("g")
                 .attr("stroke", "#999")
@@ -204,11 +236,78 @@ var link = svg.append("g")
                 .selectAll("line")
                 .data(links)
                 .join("line")
-                .attr("opacity", 0.3)
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y)
+                .attr("opacity", 0.25)
+                .attr("class", "forceline")
+                .attr("x1", d => nodes[d.source].x)
+                .attr("y1", d => nodes[d.source].y)
+                .attr("x2", d => nodes[d.target].x)
+                .attr("y2", d => nodes[d.target].y)
+
+function started(){
+  var circle = d3.select(this).classed("dragging", true);
+
+  d3.event.on("drag", dragged).on("end", ended);
+
+  function dragged(d, i) {
+    // iterate(1);
+    // for (var i = 0; i < 10; i++){
+    //   iterate(10);
+    //   nodes[i].x = d3.event.x;
+    //   nodes[i].y = d3.event.y;
+    // }
+    nodes[i].x = d3.event.x;
+    nodes[i].y = d3.event.y;
+    iterate(1);
+    nodes[i].x = d3.event.x;
+    nodes[i].y = d3.event.y;
+    circle.attr("cx", d => d.x).attr("cy", d => d.y);
+    d3.selectAll("circle")
+      //.data(nodes)
+      .transition().duration(200)
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y)
+
+    d3.selectAll(".forceline")
+      .filter(function(d) { return d.source == i; })
+                      //.data(links)
+      .attr("x1", d => nodes[d.source].x)
+      .attr("y1", d => nodes[d.source].y)
+
+    d3.selectAll(".forceline")
+      .filter(function(d) { return d.target == i; })
+                      //.data(links)
+      .attr("x2", d => nodes[d.target].x)
+      .attr("y2", d => nodes[d.target].y)
+
+
+    d3.selectAll(".forceline")
+                    //.data(links)
+      .transition().duration(200)
+      .attr("x1", d => nodes[d.source].x)
+      .attr("y1", d => nodes[d.source].y)
+      .attr("x2", d => nodes[d.target].x)
+      .attr("y2", d => nodes[d.target].y)
+
+  }
+
+  function ended() {
+    circle.classed("dragging", false);
+    iterate(10);
+    d3.selectAll("circle")
+      //.data(nodes)
+      .transition().duration(600)
+      .attr("cx", d => d.x)
+      .attr("cy", d => d.y)
+
+    d3.selectAll(".forceline")
+                    //.data(links)
+      .transition().duration(600)
+      .attr("x1", d => nodes[d.source].x)
+      .attr("y1", d => nodes[d.source].y)
+      .attr("x2", d => nodes[d.target].x)
+      .attr("y2", d => nodes[d.target].y)
+  }
+};
 
 iterate(1000);
 //
@@ -217,15 +316,14 @@ node = node
                 .transition().duration(600)
                 .attr("cx", d => d.x)
                 .attr("cy", d => d.y)
-                .attr("fill", unselecetedColor)
 
 link = link
                 //.data(links)
                 .transition().duration(600)
-                .attr("x1", d => d.source.x)
-                .attr("y1", d => d.source.y)
-                .attr("x2", d => d.target.x)
-                .attr("y2", d => d.target.y)
+                .attr("x1", d => nodes[d.source].x)
+                .attr("y1", d => nodes[d.source].y)
+                .attr("x2", d => nodes[d.target].x)
+                .attr("y2", d => nodes[d.target].y)
 
 
   // setInterval(function () {
