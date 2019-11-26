@@ -9,7 +9,7 @@
                          .default(1)
                          .on('onchange', val => {
                            eta = val;
-                           iterate(10);
+                           iterate(100);
                            //
                            d3.selectAll("circle")
                              //.data(nodes)
@@ -35,8 +35,6 @@
                          .attr('transform', 'translate(30,30)');
 
    gSimple.call(sliderSimple);
-
-
 
     var forcelineWidth = 1;
     var forceLineColor = "#c6c6c6";
@@ -199,22 +197,6 @@ function iterate(epoch){
       nodes[i].x = nodes[i].x + force_width / 2 - gx;
       nodes[i].y = nodes[i].y + force_height / 2 - gy;
     }
-    // if (j == 100){
-    //   node = node
-    //                   //.data(nodes)
-    //                   .transition().duration(600)
-    //                   .attr("cx", d => d.x)
-    //                   .attr("cy", d => d.y)
-    //                   .attr("fill", unselecetedColor)
-    //
-    //   link = link
-    //                   //.data(links)
-    //                   .transition().duration(600)
-    //                   .attr("x1", d => d.source.x)
-    //                   .attr("y1", d => d.source.y)
-    //                   .attr("x2", d => d.target.x)
-    //                   .attr("y2", d => d.target.y)
-    // }
   }
 }
 
